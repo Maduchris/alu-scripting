@@ -1,21 +1,19 @@
 #!/usr/bin/python3
-""" a recursive function that queries the Reddit API,
-parses the title of all hot articles, and prints a sorted
-count of given keywords (case-insensitive, delimited by spaces.
-Javascript should count as javascript, but java should not)."""
+"""Module for count_words function"""
+
 import json
 import requests
 
 
-def count_words(subreddit, word_list, after='', count=[]):
+def count_words(subreddit, word_list, after='', hot_list=[]):
     """Function that queries the Reddit API."""
     if after == '':
-        count = [0] * len(word_list)
+        hot_list = [0] * len(word_list)
     url = "https://www.reddit.com/r/{}/hot.json" \
         .format(subreddit)
     request = requests.get(url, params={'after': after},
                            allow_redirects=False,
-                           headers={'User-Agent': 'My-User-Agent'})
+                           headers={'User-Agent': 'My User Agent 1.0'})
     if request.status_code == 200:
         data = request.json()
 
@@ -23,7 +21,7 @@ def count_words(subreddit, word_list, after='', count=[]):
             for word in topic['data']['title'].split():
                 for i in range(len(word_list)):
                     if word_list[i].lower() == word.lower():
-                        count[i] += 1
+                        hot_list[i] += 1
 
         after = data['data']['after']
         if after is None:
@@ -32,22 +30,22 @@ def count_words(subreddit, word_list, after='', count=[]):
                 for j in range(i + 1, len(word_list)):
                     if word_list[i].lower() == word_list[j].lower():
                         save.append(j)
-                        count[i] += count[j]
+                        hot_list[i] += hot_list[j]
 
             for i in range(len(word_list)):
                 for j in range(i, len(word_list)):
-                    if (count[j] > count[i] or
+                    if (hot_list[j] > hot_list[i] or
                             (word_list[i] > word_list[j] and
-                             count[j] == count[i])):
-                        aim = count[i]
-                        count[i] = count[j]
-                    count[j] = aim
-                        aim = word_list[i]
+                             hot_list[j] == hot_list[i])):
+                        a = hot_list[i]
+                        hot_list[i] = hot_list[j]
+                        hot_list[j] = a
+                        a = word_list[i]
                         word_list[i] = word_list[j]
-                        word_list[j] = aim
+                        word_list[j] = a
 
             for i in range(len(word_list)):
-                if (count[i] > 0) and i not in save:
-                    print("{}: {}".format(word_list[i].lower(), count[i]))
+                if (hot_list[i] > 0) and i not in save:
+                    print("{}: {}".format(word_list[i].lower(), hot_list[i]))
         else:
-            count_words(subreddit, word_list, after, count)
+            count_words(subreddit, word_list, after, hot_list)
